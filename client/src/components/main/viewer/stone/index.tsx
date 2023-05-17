@@ -8,7 +8,12 @@ const Stone: NextPage<{side: number, handler: any}> = ({ side, handler }) => {
       {side == 0 ? (
       <button className={styles.button} onClick={() => handler()} />
       ) : (
-      <div className={styles.stone} style={{backgroundColor: side == 1 ? "white" : "black"}} />
+      <div
+      className={styles.stone}
+      style={{
+        backgroundColor: side == 1 ? "white" : "black",
+        border: `1px solid ${side == 1 ? "black" : "white"}`
+    }}/>
       )}
     </div>
     </>
