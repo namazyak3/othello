@@ -1,0 +1,24 @@
+.stoneBox {
+  width: 100%;
+  height: 100%;
+}
+
+.button {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  transition: all .1s;
+
+  &:hover {
+    background: #999;
+    opacity: 60%;
+  }
+}
+
+.stone {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}

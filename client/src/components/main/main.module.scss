@@ -1,0 +1,11 @@
+@import "../header/header.module.scss";
+
+.main {
+  width: 100vw;
+  height: calc(100vh - $header-height);
+
+  position: fixed;
+  top: $header-height;
+
+  background-color: white;
+}
