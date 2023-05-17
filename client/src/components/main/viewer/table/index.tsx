@@ -15,7 +15,7 @@ const Table: NextPage = () => {
     toggleTurn();
 
     console.log(
-      `置いた: {行列: ${row},列: ${column}, ターン: ${turn == 1 ? "白" : "黒"}}`
+      `置いた: {行: ${row},列: ${column}, ターン: ${turn == 1 ? "白" : "黒"}}`
     );
 
     // row
@@ -44,7 +44,7 @@ const Table: NextPage = () => {
     console.log("左下 > 右上", ld_ru)
 
     //diaglam(lu > rd)
-    const lu_rd = [...Array(l_u + r_d + 1)].map((key, i) => tableData[i + (u <= l ? 0 : u - l)][i - (u < l ? l - u : 0)]);
+    const lu_rd = [...Array(l_u + r_d + 1)].map((key, i) => tableData[i + (u <= l ? 0 : u - l)][i + (u < l ? l - u : 0)]);
     console.log("左上 > 右下", lu_rd)
   };
 
