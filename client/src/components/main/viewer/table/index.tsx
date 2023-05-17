@@ -28,23 +28,24 @@ const Table: NextPage = () => {
     );
 
     // diaglam
-    //console.log(`上: ${row}, 右: ${7 - column}, 下: ${7 - row}, 左: ${column}`);
+    // 上: row, 下: 7 -row
+    // 右: 7 - column, 左: column
+    const u = row
+    const d = 7 - row
+    const r = 7 -column
+    const l = column
     const r_u = Math.min(7 - column, row);
     const r_d = Math.min(7 - column, 7 - row);
     const l_d = Math.min(column, 7 - row);
     const l_u = Math.min(column, row);
 
     // diaglam(ld > ru)
-    const ld_ru = [...Array(r_u + l_d + 1)].map((key, ii) => {
-      return 1;
-    });
-    console.log("左下 > 右上", ld_ru);
+    const ld_ru = [...Array(l_d + r_u + 1)].map((key, i) => tableData[i + (u <= r ? 0 : u - r)][7 - i - (u < r ? r - u : 0)]);
+    console.log("左下 > 右上", ld_ru)
 
-    // diaglam(rr > ld)
-    const ru_ld = [...Array(r_d + l_u + 1)].map((key, ii) => {
-      return 1;
-    });
-    console.log("右上 > 左下", ru_ld);
+    //diaglam(lu > rd)
+    const lu_rd = [...Array(l_u + r_d + 1)].map((key, i) => tableData[i + (u <= l ? 0 : u - l)][i - (u < l ? l - u : 0)]);
+    console.log("左上 > 右下", lu_rd)
   };
 
   return (
