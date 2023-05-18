@@ -1,0 +1,13 @@
+.logView {
+  width: 90%;
+  height: 40vh;
+  padding: 10px;
+  border: 1px solid #999;
+
+  overflow-y: scroll;
+
+  & > ol {
+    padding-left: 30px;
+    list-style: decimal-leading-zero;
+  }
+}

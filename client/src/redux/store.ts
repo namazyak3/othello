@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import turnReducer from "./slice/turn";
+import logReducer from "./slice/log"
 
 export const store = configureStore({
   reducer : {
-    turns: turnReducer
+    turns: turnReducer,
+    logs: logReducer
   }
 })
 

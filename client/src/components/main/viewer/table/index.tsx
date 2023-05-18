@@ -6,28 +6,20 @@ import Stone from "../stone";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { toggleTurn } from "@/redux/slice/turn";
+import { addLog } from "@/redux/slice/log";
 
 const Table: NextPage = () => {
   const dispatch = useDispatch()
   const turn = useSelector((state: RootState) => state.turns.turn)
-  const [tableData, setTableData] = useState<number[][]>(_tableData);
+  const [board, setBoard] = useState<number[][]>(_tableData);
+
+  const log = useSelector((state: RootState) => state.logs.log)
 
   const checkStonePoint = (row: number, column: number) => {
-    // console.log(
-    //   `選択: {行: ${row+1},列: ${column+1}, ターン: ${turn == 1 ? "白" : "黒"}}`
-    // );
+    //- ボードのコピー
+    const newBoard = [...board]
 
-    // row
-    const l_r = tableData[row]
-    //console.log("左 > 右", l_r);
-
-    // column
-    const u_d = Object.keys(tableData).map((key, i) => tableData[i][column])
-    //console.log("上 > 下", u_d)
-
-    // diaglam
-    // 上: row, 下: 7 -row
-    // 右: 7 - column, 左: column
+    //- 選択位置からボードのある面までの相対距離
     const u = row
     const d = 7 - row
     const r = 7 -column
@@ -37,36 +29,45 @@ const Table: NextPage = () => {
     const l_d = Math.min(column, 7 - row);
     const l_u = Math.min(column, row);
 
-    // diaglam(ru > ld)
-    const ru_ld = [...Array(l_d + r_u + 1)].map((key, i) => tableData[i + (u <= r ? 0 : u - r)][7 - i - (u < r ? r - u : 0)]);
-    //console.log("右上 > 左下", ru_ld)
+    //- 選択位置から4方向(縦, 横, 斜め2方向)の配列
+    // 左 > 右
+    const l_r = board[row]
 
-    //diaglam(lu > rd)
-    const lu_rd = [...Array(l_u + r_d + 1)].map((key, i) => tableData[i + (u <= l ? 0 : u - l)][i + (u < l ? l - u : 0)]);
-    //console.log("左上 > 右下", lu_rd)
+    // 上 > 下
+    const u_d = Object.keys(board).map((key, i) => board[i][column])
 
+    // 右上 > 左下
+    const ru_ld = [...Array(l_d + r_u + 1)].map((key, i) => board[i + (u <= r ? 0 : u - r)][7 - i - (u < r ? r - u : 0)]);
+
+    // 左上 > 右下
+    const lu_rd = [...Array(l_u + r_d + 1)].map((key, i) => board[i + (u <= l ? 0 : u - l)][i + (u < l ? l - u : 0)]);
+
+    //- 有効な位置であるかチェック & 有効であれば配列を返す
     const reverseCheck = (list: number[], left: number, right: number) => {
-      // l
+      //* 選択位置からの分割
+      // 左分割
       const l_ls = list.slice(0, left).reverse()
       const lio_t = l_ls.indexOf(turn)
       const lio_nt = l_ls.indexOf(turn == 1 ? -1 : 1)
       const lio_0 = l_ls.indexOf(0)
 
-      // r
+      // 右分割
       const r_ls = right != 0 ? list.slice(-right) : []
       const rio_t = r_ls.indexOf(turn)
       const rio_nt = r_ls.indexOf(turn == 1 ? -1 : 1)
       const rio_0 = r_ls.indexOf(0)
 
-      // 置き換え
-      if (lio_t < lio_0 && lio_t > lio_nt) {
-        l_ls.splice(0, lio_t, ...[...Array(lio_t)].map(() => {return turn}))
+      //* 置き換え条件に合致した場所をひっくり返す
+      // ひっくり返したかどうか
+      let ok = false
+      if (lio_t != -1 && lio_t != 0 && (lio_0 == -1 || lio_t < lio_0) && lio_t > lio_nt) {
+        l_ls.splice(0, lio_t, ...[...Array(lio_t)].map(() => turn))
+        ok = true
       }
-      if (rio_t < rio_0 && rio_t > rio_nt) {
-        r_ls.splice(0, rio_t, ...[...Array(rio_t)].map(() => {return turn}))
+      if (rio_t != -1 && rio_t != 0 && (rio_0 == -1 || rio_t < rio_0) && rio_t > rio_nt) {
+        r_ls.splice(0, rio_t, ...[...Array(rio_t)].map(() => turn))
+        ok = true
       }
-
-      const ok = (lio_nt != -1 && lio_t < lio_0 && lio_t > lio_nt) || (rio_nt != -1 && rio_t < rio_0 && rio_t > rio_nt)
 
       return {
         res: ok, 
@@ -75,25 +76,27 @@ const Table: NextPage = () => {
     }
 
     // 上 > 下
-    Object.keys(reverseCheck(u_d, u, d).data).map((key, i) => {
-      //console.log(tableData[i][column], reverseCheck(u_d, u, d).data[i])
-      tableData[i][column] = reverseCheck(u_d, u, d).data[i]
-    })
+    Object.keys(reverseCheck(u_d, u, d).data).map((key, i) => newBoard[i][column] = reverseCheck(u_d, u, d).data[i])
 
     // 左 > 右
-    tableData[row] = reverseCheck(l_r, l, r).data
+    newBoard[row] = reverseCheck(l_r, l, r).data
     
     // 右上 > 左下
-    Object.keys(reverseCheck(ru_ld, r_u, l_d).data).map((key, i) => tableData[i + (u <= r ? 0 : u - r)][7 - i - (u < r ? r - u : 0)] = reverseCheck(ru_ld, r_u, l_d).data[i])
-    console.log(`右上 > 左下: ${reverseCheck(ru_ld, r_u, l_d).res ? "返す" : "返さない"}`)
-    console.log(reverseCheck(ru_ld, r_u, l_d).data)
+    Object.keys(reverseCheck(ru_ld, r_u, l_d).data).map((key, i) => {
+      newBoard[i + (u <= r ? 0 : u - r)][7 - i - (u < r ? r - u : 0)] = reverseCheck(ru_ld, r_u, l_d).data[i]
+    })
 
     // 左上 > 右下
-    //Object.keys(tableData).map((key, i) => tableData[i + (u <= l ? 0 : u - l)][i + (u < l ? l - u : 0)] = reverseCheck(lu_rd, l_u, r_d).data[i])
+    Object.keys(reverseCheck(lu_rd, l_u, r_d).data).map((key, i) => {
+      newBoard[i + (u <= l ? 0 : u - l)][i + (u < l ? l - u : 0)] = reverseCheck(lu_rd, l_u, r_d).data[i]}
+    )
 
-    if (reverseCheck(l_r, l, r).res || reverseCheck(u_d, u, d).res) {
+    // ターン切り替えの判定
+    if (reverseCheck(l_r, l, r).res || reverseCheck(u_d, u, d).res || reverseCheck(ru_ld, r_u, l_d).res || reverseCheck(lu_rd, l_u, r_d).res) {
       dispatch(toggleTurn())
-      tableData[row][column] = turn
+      newBoard[row][column] = turn
+      dispatch(addLog({row, column}))
+      setBoard(newBoard)
     }
   };
 
@@ -101,12 +104,12 @@ const Table: NextPage = () => {
     <>
       <table className={styles.table}>
         <tbody>
-          {Object.keys(tableData).map((key, i) => (
+          {Object.keys(board).map((key, i) => (
             <tr key={key}>
-              {Object.keys(tableData[i]).map((key, ii) => (
+              {Object.keys(board[i]).map((key, ii) => (
                 <td key={key}>
                   <Stone
-                    side={tableData[i][ii]}
+                    side={board[i][ii]}
                     handler={() => checkStonePoint(i, ii)}
                   />
                 </td>
