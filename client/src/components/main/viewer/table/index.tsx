@@ -9,13 +9,18 @@ import { toggleTurn } from "@/redux/slice/turn";
 import { addLog } from "@/redux/slice/log";
 
 const Table: NextPage = () => {
-  const dispatch = useDispatch()
-  const turn = useSelector((state: RootState) => state.turns.turn)
+  //- 変数宣言
+  //* ボード(初期値は"./init.json"を参照)
   const [board, setBoard] = useState<number[][]>(_tableData);
 
-  const log = useSelector((state: RootState) => state.logs.log)
+  //* ターン: 1 or -1
+  const turn = useSelector((state: RootState) => state.turns.turn)
 
-  const checkStonePoint = (row: number, column: number) => {
+  //* redux関数
+  const dispatch = useDispatch()
+
+  //- 
+  const putStone = (row: number, column: number) => {
     //- ボードのコピー
     const newBoard = [...board]
 
@@ -60,21 +65,31 @@ const Table: NextPage = () => {
       //* 置き換え条件に合致した場所をひっくり返す
       // ひっくり返したかどうか
       let ok = false
+
+      // 左配列
       if (lio_t != -1 && lio_t != 0 && (lio_0 == -1 || lio_t < lio_0) && lio_t > lio_nt) {
         l_ls.splice(0, lio_t, ...[...Array(lio_t)].map(() => turn))
         ok = true
       }
+
+      // 右配列
       if (rio_t != -1 && rio_t != 0 && (rio_0 == -1 || rio_t < rio_0) && rio_t > rio_nt) {
         r_ls.splice(0, rio_t, ...[...Array(rio_t)].map(() => turn))
         ok = true
       }
 
+      //* 返り値
       return {
-        res: ok, 
+
+        // 返したかどうか
+        res: ok,
+
+        // 変更適用後の配列
         data: [...l_ls.reverse(), ok ? turn : 0, ...r_ls]
       }
     }
 
+    //- 選択場所から4方向の配列を取得
     // 上 > 下
     Object.keys(reverseCheck(u_d, u, d).data).map((key, i) => newBoard[i][column] = reverseCheck(u_d, u, d).data[i])
 
@@ -91,11 +106,21 @@ const Table: NextPage = () => {
       newBoard[i + (u <= l ? 0 : u - l)][i + (u < l ? l - u : 0)] = reverseCheck(lu_rd, l_u, r_d).data[i]}
     )
 
-    // ターン切り替えの判定
+    //- ターン切り替えの判定
+    //* どこか一つでも返されていたら処理を行う
     if (reverseCheck(l_r, l, r).res || reverseCheck(u_d, u, d).res || reverseCheck(ru_ld, r_u, l_d).res || reverseCheck(lu_rd, l_u, r_d).res) {
+      
+      //* ターンの切り替え
       dispatch(toggleTurn())
-      newBoard[row][column] = turn
+
+      //* ログの追加
       dispatch(addLog({row, column}))
+
+      //* 変更点の確定
+      // 選択位置に自分の石を置く
+      newBoard[row][column] = turn
+
+      // 変更点をボードに反映
       setBoard(newBoard)
     }
   };
@@ -110,7 +135,7 @@ const Table: NextPage = () => {
                 <td key={key}>
                   <Stone
                     side={board[i][ii]}
-                    handler={() => checkStonePoint(i, ii)}
+                    handler={() => putStone(i, ii)}
                   />
                 </td>
               ))}
