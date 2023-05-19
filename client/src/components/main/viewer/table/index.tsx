@@ -1,14 +1,26 @@
 import { NextPage } from "next";
 import styles from "./table.module.scss";
 import _tableData from "./init.json";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Stone from "../stone";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { toggleTurn } from "@/redux/slice/turn";
 import { addLog } from "@/redux/slice/log";
+import { addStoneList, checkStoneList, clearStoneList } from "@/redux/slice/putList";
 
 const Table: NextPage = () => {
+  const checkPutListSign = useSelector((state: RootState) => state.putList.sign)
+  const putList = useSelector((state: RootState) => state.putList.stoneList)
+
+  useEffect(() => {
+    Object.keys(board).map((key, i) => {
+      Object.keys(board[i]).map((key, ii) => {
+        board[i][ii] == turn && dispatch(addStoneList({row: i, column: ii}))
+      })
+    })
+  }, [checkPutListSign])
+
   //- 変数宣言
   //* ボード(初期値は"./init.json"を参照)
   const [board, setBoard] = useState<number[][]>(_tableData);
@@ -122,6 +134,11 @@ const Table: NextPage = () => {
 
       // 変更点をボードに反映
       setBoard(newBoard)
+
+      // 選択可能位置リストをクリア
+      //dispatch(clearPutList())
+      dispatch(clearStoneList())
+      dispatch(checkStoneList())
     }
   };
 
